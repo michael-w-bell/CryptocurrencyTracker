@@ -20,15 +20,31 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 public class Main extends Application {
 	
-	private TableView<Crypto> tableView = new TableView<Crypto>();
+	private TableView<Crypto> mainCoinTableView = new TableView<Crypto>();
 	private static ArrayList<Crypto> cryptoData = new ArrayList<Crypto>();
 	private static ObservableList<Crypto> data = FXCollections.observableArrayList(cryptoData);
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void start(Stage primaryStage) {
 		try {
 			GridPane root = new GridPane();
 
+			new Thread () {
+				@Override
+				public void run() {
+					try {						
+						readCSV.readFile("crypto.csv" , cryptoData , data);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (Throwable e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				};
+			}.start();
+			
 			//title text
 			Text titleText = new Text();
 			titleText.setText("Mike's Crypto Portfolio");
@@ -40,12 +56,13 @@ public class Main extends Application {
 			refresh.setOnAction(e -> {
 				//ADD button refresh
 			});
-
+			
 			//total amount text
 			Text totalDollar = new Text();
-			totalDollar.setText(getCoinValues.getTotalDollar());
-
-			//table columns
+			String totalDollarValue = Totals.totalValue(cryptoData);
+			totalDollar.setText("Total Value: " + totalDollarValue);
+			
+			//main table columns
 			TableColumn coinColumn = new TableColumn("Coin");
 			coinColumn.setCellValueFactory(new PropertyValueFactory<>("coinName"));
 
@@ -71,8 +88,8 @@ public class Main extends Application {
 			roiColumn.setCellValueFactory(new PropertyValueFactory<>("roi"));
 
 
-			tableView.setItems(data);
-			tableView.getColumns().addAll(coinColumn, costColumn, coinBoughtColumn, costPerCoinColumn, currentPriceColumn, currentValueColumn, profitColumn, roiColumn);
+			mainCoinTableView.setItems(data);
+			mainCoinTableView.getColumns().addAll(coinColumn, costColumn, coinBoughtColumn, costPerCoinColumn, currentPriceColumn, currentValueColumn, profitColumn, roiColumn);
 
 
 			Scene scene = new Scene(root,1200,900);
@@ -87,39 +104,21 @@ public class Main extends Application {
 			primaryStage.setTitle("Mike's Crypto Portfolio");
 			root.add(titleText, 0,0);
 			root.add(refresh, 3, 0);
-			root.add(tableView, 0, 1);
-
+			root.add(mainCoinTableView, 0, 1);
+			root.add(totalDollar, 2, 0);
 			
-
 			primaryStage.show();
-
-			new Thread () {
-				@Override
-				public void run() {
-					try {
-						readCSV.readFile("crypto.csv" , cryptoData , data);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				};
-			}.start();
+	
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}//*****************END Start***************************
 
 
-	
-
-	
-
 	//***************MAIN******************
 	public static void main(String[] args) throws IOException {
 
 		launch(args);
 	}//***************END MAIN*************
-
-
 	
 }//END MAIN CLASS
